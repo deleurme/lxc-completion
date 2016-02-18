@@ -77,7 +77,7 @@ _lxc() {
       return 0
       ;;
 
-    exec |restart| stop| start)
+    exec|restart|stop|start|info|delete)
       args=$(lxc list|awk '{if(NR>2) {print $2}}')
       COMPREPLY=( $(compgen -W "${args}" -- "${cur}") )
       return 0
@@ -102,12 +102,16 @@ _lxc() {
       COMPREPLY=( $(compgen -W "add remove list rename set-url set-default get-default" -- "${cur}") )
       return 0
       ;;
-    add|set-default|set-url|rename|remove|snapshot|info)
+    add|set-default|set-url|rename|remove|snapshot)
       args=$(lxc remote list|awk '{if(NR>2) {print $2}}')
       COMPREPLY=( $(compgen -W "${args}" -- "${cur}") )
       return 0
       ;;
 
+    file)
+      COMPREPLY=( $(compgen -W "pull push" -- "${cur}") )
+      return 0
+      ;;
 
   esac
 

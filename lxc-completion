@@ -1,0 +1,121 @@
+# vim: ft=sh 
+#                     
+#     __         
+#    / /  _______
+#   / / |/_/ ___/
+#  / />  </ /__  
+# /_/_/|_|\___/  
+#                
+#
+_lxc() {
+  local cur prev opts base
+  _get_comp_words_by_ref -n : cur
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  commands="config copy delete exec file help image info launch list move profile publish remote restart restore snapshot start stop version --all --debug --verbose "
+  help_lookup="config copy delete exec file help image info launch list move profile publish remote restart restore snapshot start stop version"
+
+  # config     - Manage configuration.
+  # copy       - Copy containers within or in between lxd instances.
+  # delete     - Delete containers or container snapshots.
+  # exec       - Execute the specified command in a container.
+  # file       - Manage files on a container.
+  # help       - Presents details on how to use LXD.
+  # image      - Manipulate container images.
+  # info       - List information on containers.
+  # launch     - Launch a container from a particular image.
+  # list       - Lists the available resources.
+  # move       - Move containers within or in between lxd instances.
+  # profile    - Manage configuration profiles.
+  # publish    - Publish containers as images.
+  # remote     - Manage remote LXD servers.
+  # restart    - Changes one or more containers state to restart.
+  # restore    - Set the current state of a resource back to what it was when it was snapshotted.
+  # snapshot   - Create a read-only snapshot of a container.
+  # start      - Changes one or more containers state to start.
+  # stop       - Changes one or more containers state to stop.
+  # version    - Prints the version number of LXD.
+
+  case "${prev}" in
+    help )
+      args=$(for word in $help_lookup;do echo "$word";done)
+      COMPREPLY=( $(compgen -W "${args}" -- "${cur}") )
+      return 0
+      ;;
+    # lxc config device add <[remote:]container> <name> <type> [key=value]...     Add a device to a container.
+    # lxc config device list [remote:]<container>                                 List devices for container.
+    # lxc config device show [remote:]<container>                                 Show full device details for container.
+    # lxc config device remove [remote:]<container> <name>                        Remove device from container.
+    # lxc config edit [remote:]<container>                                        Edit container configuration in external editor.
+    # lxc config get [remote:]<container> key                                     Get configuration key.
+    # lxc config set [remote:]<container> key value                               Set container configuration key.
+    # lxc config unset [remote:]<container> key                                   Unset container configuration key.
+    # lxc config set key value                                                    Set server configuration key.
+    # lxc config unset key                                                        Unset server configuration key.
+    # lxc config show [remote:]<container>                                        Show container configuration.
+    # lxc config trust list [remote]                                              List all trusted certs.
+    # lxc config trust add [remote] <certfile.crt>                                Add certfile.crt to trusted hosts.
+    # lxc config trust remove [remote] [hostname|fingerprint]                     Remove the cert from trusted hosts.
+    # 
+    # Examples:
+    # To mount host's /share/c1 onto /opt in the container:
+    #    lxc config device add [remote:]container1 <device-name> disk source=/share/c1 path=opt
+    # 
+    # To set an lxc config value:
+    #     lxc config set [remote:]<container> raw.lxc 'lxc.aa_allow_incomplete = 1'
+    # 
+    # To listen on IPv4 and IPv6 port 8443 (you can omit the 8443 its the default):
+    #     lxc config set core.https_address [::]:8443
+    # 
+    # To set the server trust password:
+    #     lxc config set core.trust_password blah
+    # 
+    config )
+      COMPREPLY=( $(compgen -W "device edit get set unset show trust" -- "${cur}") )
+      return 0
+      ;;
+
+    exec |restart| stop| start)
+      args=$(lxc list|awk '{if(NR>2) {print $2}}')
+      COMPREPLY=( $(compgen -W "${args}" -- "${cur}") )
+      return 0
+      ;;
+    # lxc remote add <name> <url> [--accept-certificate] [--password=PASSWORD] [--public]    Add the remote <name> at <url>.
+    # lxc remote remove <name>                                                               Remove the remote <name>.
+    # lxc remote list                                                                        List all remotes.
+    # lxc remote rename <old> <new>                                                          Rename remote <old> to <new>.
+    # lxc remote set-url <name> <url>                                                        Update <name>'s url to <url>.
+    # lxc remote set-default <name>                                                          Set the default remote.
+    # lxc remote get-default                                                                 Print the default remote.
+    # 
+    # shawn@apollo [539][1sj][pts/0] ~/lxc-completion
+    # $ lxc remote  list
+    # +--------+-----------------------------------------+--------+
+    # |  NAME  |                   URL                   | PUBLIC |
+    # +--------+-----------------------------------------+--------+
+    # | images | https://images.linuxcontainers.org:8443 | YES    |
+    # | local  | unix://                                 | NO     |
+    # +--------+-----------------------------------------+--------+
+    remote )
+      COMPREPLY=( $(compgen -W "add remove list rename set-url set-default get-default" -- "${cur}") )
+      return 0
+      ;;
+    add|set-default|set-url|rename|remove|snapshot|info)
+      args=$(lxc remote list|awk '{if(NR>2) {print $2}}')
+      COMPREPLY=( $(compgen -W "${args}" -- "${cur}") )
+      return 0
+      ;;
+
+
+  esac
+
+  COMPREPLY=($(compgen -W "${commands}" -- "${cur}"))
+  __ltrim_colon_completions "$cur"
+  return 0
+}
+
+complete -F _lxc lxc
+
+

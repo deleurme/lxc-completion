@@ -13,6 +13,7 @@ _lxc() {
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
+  last="${COMP_WORDS[COMP_CWORD-2]}"
 
   commands="config copy delete exec file help image info launch list move profile publish remote restart restore snapshot start stop version --all --debug --verbose "
   help_lookup="config copy delete exec file help image info launch list move profile publish remote restart restore snapshot start stop version"
@@ -103,7 +104,9 @@ _lxc() {
       return 0
       ;;
     add|set-default|set-url|rename|remove|snapshot)
-      args=$(lxc remote list|awk '{if(NR>2) {print $2}}')
+      if [ $last == "remote" ]; then
+        args=$(lxc remote list|awk '{if(NR>2) {print $2}}')
+      fi
       COMPREPLY=( $(compgen -W "${args}" -- "${cur}") )
       return 0
       ;;
